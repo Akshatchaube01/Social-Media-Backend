@@ -13,6 +13,39 @@ const commentSchema = new mongoose.Schema({
     },
     text:{
         type:String,
-        
+        required:true,
+        trim:true
+    },
+    likes:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Users"
+    }],
+    replies:[{
+        user:{
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"User",
+            required:true
+        },
+        text:{
+            type:String,
+            required:true,
+            trim:true
+        },
+        likes:[{
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Users"
+        }],
+        createdAt:{
+            type:Date,
+            default:Date.now
+        }
+    }],
+    createdAt:{
+        type:Date,
+        default:Date.now
     }
-},{timestamp:true})
+},)
+
+const Comment=mongoose.model("Comment",commentSchema);
+
+module.exports=Comment;
