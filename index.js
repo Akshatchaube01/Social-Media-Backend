@@ -1,9 +1,11 @@
-const express = require("express");
+const express = require('express');
 const connectDB = require('./database/db');
 const app = express();
 const dotenv = require("dotenv");
-
+const authRoute = require("./routes/auth");
+app.use(express.json());
 dotenv.config();
+app.use("/api/auth", authRoute);
 
 connectDB()
   .then(() => {
@@ -14,3 +16,4 @@ connectDB()
   .catch((error) => {
     console.error("Error connecting to the database:", error);
   });
+
