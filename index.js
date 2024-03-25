@@ -3,9 +3,14 @@ const connectDB = require('./database/db');
 const app = express();
 const dotenv = require("dotenv");
 const authRoute = require("./routes/auth");
-app.use(express.json());
+const cookieParser=require("cookie-parser");
+
+
 dotenv.config();
+app.use(express.json());
+app.use(cookieParser()); 
 app.use("/api/auth", authRoute);
+
 
 connectDB()
   .then(() => {

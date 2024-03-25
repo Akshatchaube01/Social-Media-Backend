@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const User = require('../models/User');
-const bcrypt=require("bcrypt"); //used to encrypt passwords 
+const User = require('../models/User');   
+const bcrypt=require("bcrypt");            //used to encrypt passwords 
 const jwt=require("jsonwebtoken");
 
 
@@ -36,6 +36,7 @@ router.post("/register", async (req, res) => {
 
 // LOGIN 
 router.post("/login", async (req, res) => {
+    console.log("login entered");
     try{
         let user;
         if(req.body.email){
@@ -60,7 +61,7 @@ router.post("/login", async (req, res) => {
         res.cookie("token",token).status(200).json(data);
 
         // const token=jwt.sign({_id:user._id},"cdanckadn",{expiresIn:"3d"})
-        // console.log(token);
+        console.log(token);
         // res.status(200).json(user);
     }
     catch(error){
@@ -69,10 +70,10 @@ router.post("/login", async (req, res) => {
 });
 
 // LOGOUT 
-router.post("/logout",async (req, res) => {
+router.get("/logout",async (req, res) => {
     try{
         res.clearCookie("token",{sameSite:"none",secure:true}).status(200).json("user logged out successfully !!");
-        
+
     }
     catch(error){
         res.status(401).json(error);
@@ -80,8 +81,25 @@ router.post("/logout",async (req, res) => {
 });
 
 // FETCH CURRENT USER
-router.get("/current-user", (req, res) => {
-    // Your logic to fetch the current user
+
+router.get("/refetch",async (req, res) => {
+    const token=req.cookies.token;
+    console.log("refetch wala " + req.cookies.token);
+    jwt.verify(token,process.env.JWT_SECRET,{},async(err,data)=>{
+        if(err){
+            res.status(404).json(err);
+        }
+        else{
+            try{
+                const id=data._id;
+                const user=await User.findOne({_id:id});
+                res.status(200).json(user);
+            }
+            catch(error){
+                res.status(500).json(error);
+            }
+        }
+    });
 });
 
 module.exports = router;
