@@ -4,12 +4,14 @@ const app = express();
 const dotenv = require("dotenv");
 const authRoute = require("./routes/auth");
 const cookieParser=require("cookie-parser");
+const {errorHandler}=require("./middlewares/error")
 
 
 dotenv.config();
 app.use(express.json());
 app.use(cookieParser()); 
 app.use("/api/auth", authRoute);
+app.use(errorHandler);
 
 
 connectDB()

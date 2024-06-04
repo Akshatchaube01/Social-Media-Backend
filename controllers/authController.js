@@ -2,13 +2,15 @@ const User=require("../models/User");
 const bcrypt=require("bcrypt");
 const jwt= require("jsonwebtoken");
 const express = require('express');
+const { CustomError } = require("../middlewares/error");
 
-const registerController = async (req, res) => {
+const registerController = async (req, res,next) => {
     try {
         const { password, username, email } = req.body;
         const existingUser = await User.findOne({ $or: [{ username }, { email }] });
         if (existingUser) {
-            return res.status(400).json("Username or email already present!");
+            throw new CustomError("Username or email already exists !");
+           // return res.status(400).json("Username or email already present!");
         } else {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hashSync(password, salt);
@@ -17,7 +19,7 @@ const registerController = async (req, res) => {
             res.status(201).json(savedUser);
         }
     } catch (error) {
-        res.status(500).json(error);
+        next(error)
     }
 }
 
@@ -49,7 +51,7 @@ const registerController = async (req, res) => {
 //     }
 // }
 
-const loginController=async(req,res)=>{
+const loginController=async(req,res,next)=>{
     console.log("login entered");
     try{
         let user;
@@ -61,13 +63,13 @@ const loginController=async(req,res)=>{
         }
         
         if(!user){
-            return res.status(404).json("User not found");
+            throw new CustomError("User not found !",404);
         }
 
         const match = await bcrypt.compare(req.body.password,user.password);
 
         if(!match){
-            return res.status(401).json("Wrong credentials !")
+            throw new CustomError("Wrong Credentials!",401);
         }
 
         const {password,...data}=user._doc
@@ -79,25 +81,25 @@ const loginController=async(req,res)=>{
         // res.status(200).json(user);
     }
     catch(error){
-        res.status(500).json(error);
+        next(error);
     }
 }
 
-const logoutController=async(req,res)=>{
+const logoutController=async(req,res,next)=>{
     try{
         res.clearCookie("token",{sameSite:"none",secure:true}).status(200).json("user logged out successfully !!");
     }
     catch(error){
-        res.status(401).json(error);
+        next(error);
     }
 }
 
-const refetchUserController=async(req,res)=>{
+const refetchUserController=async(req,res,next)=>{
     const token=req.cookies.token;
     console.log("refetch wala " + req.cookies.token);
     jwt.verify(token,process.env.JWT_SECRET,{},async(err,data)=>{
         if(err){
-            res.status(404).json(err);
+            throw new CustomError(err,404)
         }
         else{
             try{
@@ -106,7 +108,7 @@ const refetchUserController=async(req,res)=>{
                 res.status(200).json(user);
             }
             catch(error){
-                res.status(500).json(error);
+                next(error);
             }
         }
     });
